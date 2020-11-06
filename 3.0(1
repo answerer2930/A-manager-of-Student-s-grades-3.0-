@@ -1,0 +1,447 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define N 30
+int InputRecord(int iNumber,int iA[][7],int iB[],char cName[][12],int iCourse);
+int Ave(int iA[][7],int iNumber,int iAverage[],int iTotal[],int iCourse);
+int Score(int iNumber,int iCourse,char cName[][12],int iA[][7],int iD[][7],int iSTotal[],int iSAve[]);
+int Scorehigh(int iA[][7],int iSTotal[],int iSample[],int iC[],char sample[31][12],int iNumber,char cName[][12],int iCourse);
+int Scorelow(int A[][7],int iSTotal[],int iSample[],int iC[],char sample[31][12],int iNumber,char cName[][12],int iCourse);
+int StudentID(int iNumber,int iSTotal[],char cName[][12]);
+void SortString(int iA[][7],char cName[][12],char sample[][12],int iSample[],int iSTotal[],int iC[31],int iNumber,int iCourse);
+void  SearchbyStudentID(char cName[][12],int iA[][7],int i,int iNumber);
+int Statistics(int iA[][7],int iNumber,int iCourse);
+int main()
+{
+    int iChoice,iNumber,iCounter,iA[31][7],iB[31],iC[31],iD[31][7],i,j,a,iCourse,iSTotal[31],iSAve[31],iSample[31],iAverage[7],iTotal[7];
+    char cName[31][12],sample[31][12],cSearch[1][12];
+    for(i=0,iChoice=1;iChoice!=0;i++)
+    {
+        printf("1. Input record\n2. List record\n3. Calculate total and average score of every course\n4. Calculate total and average score of every student\n5. Sort in descending order by total score of every student\n6. Sort in ascending order by total score of every student\n7. Sort in ascending order by StudentID\n8. Sort in dictionary order by name\n9. Search by StudentID\n10.Search by name\n11.Statistic analysis for every course\n0. Exit\nPlease enter your choice:\n");
+        scanf("%d",&iChoice);
+        switch(iChoice)
+        {
+        case 1:
+        {
+            for(i=1; i!=0;)
+            {
+                printf("请输入学生人数\n");
+                scanf("%d",&iNumber);
+                printf("请输入录入课程数量(最多不超过六门)");
+                scanf("%d",&iCourse);
+                if(iNumber<1)
+                {
+                    printf("请校验输入是否正确\n");/*增强鲁棒性*/
+                    continue;
+                }
+                i=0;
+            }
+            InputRecord(iNumber,iA,iB,cName,iCourse);
+        }
+        break;
+        case 2:
+        {
+            for(iCounter=1; iCounter<iNumber+1; iCounter++)
+            {
+                printf("学号%d的考生%s\n",iB[iCounter],cName[iB[iCounter]]);
+                for(i=1;i<iCourse+1;i++)
+                {
+                    printf("第%d科成绩为%d\n",i,iA[iB[iCounter]][i]);
+                }
+            }
+        }
+        break;
+        case 3:
+        {
+            Ave(iA,iNumber,iAverage,iTotal,iCourse);
+        }
+        break;
+        case 4:
+        {
+            Score(iNumber,iCourse,cName,iA,iD,iSTotal,iSAve);
+        }
+        case 5:
+        {
+            Scorehigh(iA,iSTotal,iSample,iC,sample,iNumber,cName,iCourse);
+            printf("学生按成绩降序排名如下：\n");
+            for(i=1;i<iNumber+1;i++)
+            {
+                printf("第%d名,%d号同学%s，成绩为%d\n",i,iC[i],sample[i],iSample[i]);
+                }
+        }
+        break;
+        case 6:
+            {
+                Scorelow(iA,iSTotal,iSample,iC,sample,iNumber,cName,iCourse);
+                printf("学生按成绩升序排名如下：\n");
+            for(i=iNumber;i>0;i--)
+                {
+                printf("第%d名,%d号同学%s，成绩为%d\n",i,iC[i],sample[i],iSample[i]);
+                }
+            }
+        break;
+        case 7:
+            {
+                StudentID(iNumber,iSTotal,cName);
+            }
+        break;
+        case 8:
+            {
+                SortString(iA,cName,sample,iSample,iTotal,iC,iNumber,iCourse);
+            }
+            break;
+        case 9:
+            {
+                printf("请输入需要查找成绩的学生的学号\n");
+                scanf("%d",&i);
+                Scorehigh(iA,iSTotal,iSample,iC,sample,iNumber,cName,iCourse);
+                for(j=1;j<iNumber+1;j++)
+                {
+                    if(i==iC[j])
+                    {
+                        break;
+                    }
+                }
+                    printf("学号%d的考生%s总成绩为%d,排名为%d\n",i,cName[i],iSTotal[i],j);
+                    for(a=1;a<iCourse+1;a++)
+                    {
+                        printf("第%d科成绩为%d\n",a,iA[i][a]);
+                    }
+            }
+            break;
+        case 10:
+            {
+                printf("请输入需要查找成绩的学生的姓名\n");
+                scanf("%s",&cSearch[0][0]);
+                Scorehigh(iA,iSTotal,iSample,iC,sample,iNumber,cName,iCourse);
+                for(j=1;j<iNumber+1;j++)
+                {
+                    if(strcmp(cSearch,sample[j])==0)
+                    {
+                        break;
+                    }
+                }
+                    printf("学号%d的考生%s总成绩为%d,排名为%d\n",iC[j],sample[j],iSample[j],j);
+                    for(a=1;a<iCourse+1;a++)
+                    {
+                        printf("第%d科成绩为%d\n",a,iA[iC[j]][a]);
+                    }
+            }
+            break;
+        case 11:
+            {
+                Statistics(iA,iNumber,iCourse);
+            }
+        }
+    }
+}
+int InputRecord(int iNumber,int iA[][7],int iB[],char cName[][12],int iCourse)
+/**********************************
+** 函数名:输入函数
+** 输 入: int iNumber,int iA[31],int iB[31]
+** iNumber---总人数
+** iA[]---按学号的排的成绩
+** iB[]---输入顺序索引
+** 输 出: 引导用户进行操作的一系列语句
+** 功能描述:存入学生成绩及学号信息
+** 调用模块:
+** 作 者:胡杨晗
+** 日 期:10.26
+** 修 改:
+** 日 期:
+** 版本
+************************************/
+{
+    int iCounter,iStudentID,a,b;
+    for(a=0;a!=1;)
+    {
+    a=0;/*重新初始化标志量a*/
+    printf("请输入学号及相应学生的成绩\n");
+    for(iCounter=1; iCounter<iNumber+1&&a!=2; iCounter++)
+    {
+        printf("请输入学号\n");
+        scanf("%d",&iStudentID);
+        iB[iCounter]=iStudentID;
+        for(b=1;b<iCourse+1;b++)
+        {
+            printf("请输入该生第%d科成绩\n",b);
+            scanf("%d",&iA[iStudentID][b]);
+        }
+        printf("请输入学生姓名,且姓名不得超过11个字母\n");
+        scanf("%s",&cName[iStudentID][0]);
+        fflush(stdin);
+        if(iStudentID<1||iA[iStudentID]<0)
+        {
+            printf("请校验输入是否正确\n");/*增加程序鲁棒性，若学号小于1或成绩小于0则重新输入数据*/
+            a=2;/*置标志量a为2*/
+        }
+    }
+    if(a==2)/*若标志量a为2，则继续循环，录入正确数据*/
+    {
+        continue;
+    }
+    a=1;
+    }
+    return 0;
+}
+int Ave(int iA[][7],int iNumber,int iAverage[],int iTotal[],int iCourse)/*利用该函数须输出两个量，故使用指针变量*/
+/**********************************
+** 函数名:求总分及平均分
+** 输 入: int iA[],int iNumber,int *piAverage,int *piTotal
+** iA---按学号排的成绩
+** iNumber---总人数
+** *piAverage---平均值
+***piTotal---总分
+** 输 出: 平均分和总分
+************************************/
+{
+    static int i,a;
+    for(a=1;a<iCourse+1;a++)
+    {
+        iTotal[a]=0;
+        for(i=1;i<iNumber+1;i++)
+    {
+        iTotal[a]=iA[i][a]+iTotal[a];
+    }
+    iAverage[a]=iTotal[a]/iNumber;
+    printf("第%d科课程总分为%d,平均分为%d",a,iTotal[a],iAverage[a]);
+    }
+    return 0;
+}
+int Score(int iNumber,int iCourse,char cName[][12],int iA[][7],int iD[][7],int iSTotal[],int iSAve[])
+{
+    int i,j;
+    for(i=1;i<iNumber+1;i++)
+    {
+        iSTotal[i]=0;
+        for(j=1;j<iCourse+1;j++)
+        {
+            iSTotal[i]=iSTotal[i]+iA[i][j];
+        }
+        iSAve[i]=iSTotal[i]/iCourse;
+        printf("%d号同学%s总分为%d，平均分为%d",i,cName[i],iSTotal[i],iSAve[i]);
+    }
+    return 0;
+}
+int Scorehigh(int iA[][7],int iSTotal[],int iSample[],int iC[],char sample[31][12],int iNumber,char cName[][12],int iCourse)
+/**********************************
+** 函数名:降序函数
+** 输 入: int iNumber,int iA[31],int iD[31],iC[31]
+** iNumber---总人数
+** iA[]---按学号的排的成绩
+** iD[]---用于排序的数组
+** iC[]---存储学号
+** 输 出: 按降序排列成绩
+** 功能描述:按降序排列成绩，并输出
+** 调用模块:
+** 作 者:胡杨晗
+** 日 期:10.26
+** 修 改:
+** 日 期:
+** 版本
+************************************/
+{
+    int i,j,p,temp;
+    char oh[12];
+    for(i=1;i<iNumber+1;i++)
+    {
+        iSTotal[i]=0;
+        for(j=1;j<iCourse+1;j++)
+        {
+            iSTotal[i]=iSTotal[i]+iA[i][j];
+        }
+    }
+    for(i=1;i<iNumber+1;i++)
+    {
+    iSample[i]=iSTotal[i];/*不修改iA数组，将iA数组的值依次赋给iD数组*/
+    strcpy(sample[i],cName[i]);
+    }
+    for(i=1;i<31;i++)
+    {
+        iC[i]=i;/*记录学号*/
+    }
+    for(i=1;i<iNumber+1;i++)
+    {
+        for(p=1;p<iNumber-i+1;p++)/*冒泡排序法*/
+        {
+            if(iSample[p]<iSample[p+1])
+            {
+                temp=iSample[p];
+                iSample[p]=iSample[p+1];
+                iSample[p+1]=temp;
+                temp=iC[p];
+                iC[p]=iC[p+1];/*相应学号也对换*/
+                iC[p+1]=temp;
+                strcpy(oh,sample[p]);
+                strcpy(sample[p],sample[p+1]);
+                strcpy(sample[p+1],oh);
+            }
+        }
+    }
+    return 0;
+}
+int Scorelow(int iA[][7],int iSTotal[],int iSample[],int iC[],char sample[31][12],int iNumber,char cName[][12],int iCourse)
+/**********************************
+** 函数名:升序函数
+** 输 入: int iNumber,int iA[31],int iD[31],iC[31]
+** iNumber---总人数
+** iA[]---按学号的排的成绩
+** iD[]---用于排序的数组
+** iC[]---存储学号
+** sample[31][12]---存储姓名
+** 输 出: 按降序排列成绩
+** 功能描述:按降序排列成绩，并输出
+** 调用模块:
+** 作 者:胡杨晗
+** 日 期:10.26
+** 修 改:
+** 日 期:
+** 版本
+************************************/
+{
+    int i,j,p,temp;
+    char oh[12];
+    for(i=1;i<iNumber+1;i++)
+    {
+        iSTotal[i]=0;
+        for(j=1;j<iCourse+1;j++)
+        {
+            iSTotal[i]=iSTotal[i]+iA[i][j];
+        }
+    }
+    for(i=1;i<iNumber+1;i++)
+    {
+    iSample[i]=iSTotal[i];/*不修改iA数组，将iA数组的值依次赋给iD数组*/
+    strcpy(sample[i],cName[i]);
+    }
+    for(i=1;i<31;i++)
+    {
+        iC[i]=i;/*记录学号*/
+    }
+    for(i=1;i<iNumber+1;i++)
+    {
+        for(p=1;p<iNumber-i+1;p++)/*冒泡排序法*/
+        {
+            if(iSample[p]<iSample[p+1])
+            {
+                temp=iSample[p];
+                iSample[p]=iSample[p+1];
+                iSample[p+1]=temp;
+                temp=iC[p];
+                iC[p]=iC[p+1];/*相应学号也对换*/
+                iC[p+1]=temp;
+                strcpy(oh,sample[p]);
+                strcpy(sample[p],sample[p+1]);
+                strcpy(sample[p+1],oh);
+            }
+        }
+    }
+    return 0;
+}
+int StudentID(int iNumber,int iSTotal[],char cName[][12])
+{
+    int i;
+    for(i=1;i<iNumber+1;i++)
+    {
+        printf("%d号同学%s，总成绩为%d\n",i,cName[i],iSTotal[i]);
+    }
+    return 0;
+}
+void SortString(int iA[][7],char cName[][12],char sample[][12],int iSample[],int iSTotal[],int iC[31],int iNumber,int iCourse)
+{
+    int i,j,a;
+    char temp[12];
+    for(i=1;i<iNumber+1;i++)
+    {
+        iSTotal[i]=0;
+        for(j=1;j<iCourse+1;j++)
+        {
+            iSTotal[i]=iSTotal[i]+iA[i][j];
+        }
+    }
+    for(i=1;i<iNumber+1;i++)
+    {
+    iSample[i]=iSTotal[i];/*不修改iA数组，将iA数组的值依次赋给iD数组*/
+    strcpy(sample[i],cName[i]);
+    }
+    for(i=1;i<31;i++)
+    {
+        iC[i]=i;/*记录学号*/
+    }
+    for(i=1;i<iNumber;i++)
+    {
+        for(j=i+1;j<iNumber+1;j++)
+        {
+            if(strcmp(sample[j],sample[i])<0)
+            {
+                strcpy(temp,sample[i]);
+                strcpy(sample[i],sample[j]);
+                strcpy(sample[j],temp);
+                a=iSample[j];
+                iSample[j]=iSample[i];
+                iSample[i]=a;
+                a=iC[j];
+                iC[j]=iC[i];/*相应学号也对换*/
+                iC[i]=a;
+            }
+        }
+    }
+    for(i=1;i<iNumber+1;i++)
+    {
+        printf("%d号同学%s，成绩为%d\n",iC[i],sample[i],iSample[i]);
+    }
+}
+int Statistics(int iA[][7],int iNumber,int iCourse)
+/**********************************
+** 函数名:统计函数
+** 输 入: int iA[],int iNumber
+** iNumber---总人数
+** iA[]---按学号的排的成绩
+** 输 出: 各成绩段人数及所占百分比
+** 功能描述:各成绩段人数及所占百分比
+** 调用模块:
+** 作 者:胡杨晗
+** 日 期:10.26
+** 修 改:
+** 日 期:
+** 版本
+************************************/
+{
+    int a=0,b=0,c=0,d=0,e=0,i,j;/*初始化变量*/
+    double percent1,percent2,percent3,percent4,percent5;
+    for(j=1;j<iCourse+1;j++)
+    {
+        a=0,b=0,c=0,d=0,e=0;
+    for(i=1;i<iNumber+1;i++)
+    {
+        if(iA[j][i]<=100&&iA[j][i]>=90)
+        {
+            a++;
+        }
+        else if(iA[j][i]<=89&&iA[j][i]>=80)
+        {
+            b++;
+        }
+        else if(iA[j][i]<=79&&iA[j][i]>=70)
+        {
+            c++;
+        }
+        else if(iA[j][i]<=69&&iA[j][i]>=60)
+        {
+            d++;
+        }
+        else
+        {
+            e++;
+        }
+    }
+    percent1=a*100.0/iNumber;
+    percent2=b*100.0/iNumber;
+    percent3=c*100.0/iNumber;
+    percent4=d*100.0/iNumber;
+    percent5=e*100.0/iNumber;
+    printf("第%d门课程等级为优秀的人数为%d\n其所占百分比为%lf%%\n等级为良好的人数为%d\n其所占百分比为%lf%%\n等级为中等的人数为%d\n其所占百分比为%lf%%\n等级为及格的人数为%d\n其所占百分比为%lf%%\n等级为不及格的人数为%d\n其所占百分比为%lf%%\n",j,a,percent1,b,percent2,c,percent3,d,percent4,e,percent5);
+    }
+    return 0;
+}
+
